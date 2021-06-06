@@ -7,6 +7,7 @@ plugins {
     id("io.micronaut.application") version "1.5.0"
     id("org.jetbrains.kotlin.plugin.allopen") version "1.4.32"
     id("com.google.protobuf") version "0.8.15"
+    id("jacoco")
 }
 
 version = "0.1"
@@ -60,8 +61,12 @@ tasks {
             jvmTarget = "11"
         }
     }
-
-
+    test {
+        finalizedBy(jacocoTestReport)
+    }
+    jacocoTestReport {
+        dependsOn(test)
+    }
 }
 sourceSets {
     main {
@@ -88,5 +93,18 @@ protobuf {
                 id("grpc")
             }
         }
+    }
+}
+
+tasks.withType<JacocoReport> {
+    afterEvaluate {
+        classDirectories.setFrom(files(classDirectories.files.map {
+            fileTree(it).apply {
+                exclude(
+                    "com/boni/grpc/**",
+                    "com/boni/Application*"
+                )
+            }
+        }))
     }
 }
